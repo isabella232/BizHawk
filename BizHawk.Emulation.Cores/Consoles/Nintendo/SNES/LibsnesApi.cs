@@ -158,6 +158,7 @@ namespace BizHawk.Emulation.Cores.Nintendo.SNES
 		{
 			CARTROM, CARTRAM, WRAM, APURAM,
 			SGB_CARTROM, SGB_CARTRAM, SGB_WRAM, SGB_HRAM,
+			SA1_IRAM,
 			NUM
 		};
 
@@ -294,22 +295,22 @@ namespace BizHawk.Emulation.Cores.Nintendo.SNES
 
 			[FieldOffset(128)]
 			//bleck. this is a long so that it can be a 32/64bit pointer
-			public fixed long cdl_ptr[4];
-			[FieldOffset(160)]
-			public fixed int cdl_size[4];
+			public fixed long cdl_ptr[8];
+			[FieldOffset(192)]
+			public fixed int cdl_size[8];
 
-			[FieldOffset(176)]
+			[FieldOffset(224)]
 			public CPURegs cpuregs;
-			[FieldOffset(208)]
+			[FieldOffset(256)]
 			public LayerEnables layerEnables;
 
-			[FieldOffset(220)]
+			[FieldOffset(268)]
 			//static configuration-type information which can be grabbed off the core at any time without even needing a QUERY command
 			public SNES_REGION region;
-			[FieldOffset(224)]
+			[FieldOffset(272)]
 			public SNES_MAPPER mapper;
 
-			[FieldOffset(228)]
+			[FieldOffset(276)]
 			public int unused;
 
 			//utilities

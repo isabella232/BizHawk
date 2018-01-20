@@ -199,7 +199,9 @@ namespace BizHawk.Emulation.Cores.Nintendo.SNES
 			CARTRIDGE_ROM = 105,
 
 			SYSBUS = 200,
-			LOGICAL_REGS = 201
+			LOGICAL_REGS = 201,
+
+			SA1_IRAM = 300
 		}
 
 		public enum SNES_MAPPER : byte

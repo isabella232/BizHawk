@@ -12,21 +12,64 @@ namespace BizHawk.Emulation.Cores.Nintendo.SNES
 		private IMemoryDomains _memoryDomains;
 		private LibsnesApi.SNES_MAPPER? _mapper = null;
 
-		// works for WRAM, garbage for anything else
-		private static int? FakeBusMap(int addr)
+		// works for RAM, garbage for anything else
+		private MemoryMap FakeBusMap(int addr)
 		{
 			addr &= 0xffffff;
 			int bank = addr >> 16;
 			if (bank == 0x7e || bank == 0x7f)
 			{
-				return addr & 0x1ffff;
+				return new MemoryMap { Id = LibsnesApi.SNES_MEMORY.WRAM, Offset = addr & 0x1ffff };
 			}
 
-			bank &= 0x7f;
 			int low = addr & 0xffff;
-			if (bank < 0x40 && low < 0x2000)
+			if (low < 0x2000 && ((bank >= 0x00 && bank <= 0x3f) || (bank >= 0x80 && bank <= 0xbf)))
 			{
-				return low;
+				return new MemoryMap { Id = LibsnesApi.SNES_MEMORY.WRAM, Offset = low };
+			}
+
+			if (!_mapper.HasValue)
+			{
+				return null;
+			}
+
+			switch (_mapper)
+			{
+				case LibsnesApi.SNES_MAPPER.LOROM:
+					break;
+
+				case LibsnesApi.SNES_MAPPER.EXLOROM:
+					break;
+
+				case LibsnesApi.SNES_MAPPER.HIROM:
+				case LibsnesApi.SNES_MAPPER.EXHIROM:
+					break;
+
+				case LibsnesApi.SNES_MAPPER.SUPERFXROM:
+					break;
+
+				case LibsnesApi.SNES_MAPPER.SA1ROM:
+					if ((low >= 0x3000 && low <= 0x37ff) && ((bank >= 0x00 && bank <= 0x3f) || (bank >= 0x80 && bank <= 0xbf)))
+					{
+						return new MemoryMap { Id = LibsnesApi.SNES_MEMORY.SA1_IRAM, Offset = low - 0x3000 };
+					}
+
+					break;
+
+				case LibsnesApi.SNES_MAPPER.BSCLOROM:
+					break;
+
+				case LibsnesApi.SNES_MAPPER.BSCHIROM:
+					break;
+
+				case LibsnesApi.SNES_MAPPER.BSXROM:
+					break;
+
+				case LibsnesApi.SNES_MAPPER.STROM:
+					break;
+
+				default:
+					throw new InvalidOperationException($"Unknown mapper: {_mapper}");
 			}
 
 			return null;
@@ -73,6 +116,16 @@ namespace BizHawk.Emulation.Cores.Nintendo.SNES
 				MakeMemoryDomain("SGB CARTRAM", LibsnesApi.SNES_MEMORY.SGB_CARTRAM, MemoryDomain.Endian.Little);
 			}
 
+			if (_mapper.HasValue)
+			{
+				switch (_mapper)
+				{
+					case LibsnesApi.SNES_MAPPER.SA1ROM:
+						MakeMemoryDomain("SA1 IRAM", LibsnesApi.SNES_MEMORY.SA1_IRAM, MemoryDomain.Endian.Little);
+						break;
+				}
+			}
+
 
 
 			_memoryDomains = new MemoryDomainList(_memoryDomainList);
@@ -106,17 +159,16 @@ namespace BizHawk.Emulation.Cores.Nintendo.SNES
 				throw new InvalidOperationException();
 			}
 
-			byte* blockptr = Api.QUERY_get_memory_data(LibsnesApi.SNES_MEMORY.WRAM);
-
 			var md = new MemoryDomainDelegate("System Bus", 0x1000000, MemoryDomain.Endian.Little,
 				addr =>
 				{
 					using (Api.EnterExit())
 					{
-						var a = FakeBusMap((int)addr);
-						if (a.HasValue)
+						MemoryMap map = FakeBusMap((int)addr);
+						if (map != null)
 						{
-							return blockptr[a.Value];
+							byte* blockptr = Api.QUERY_get_memory_data(map.Id);
+							return blockptr[map.Offset];
 						}
 
 						return FakeBusRead((int)addr);
@@ -126,9 +178,12 @@ namespace BizHawk.Emulation.Cores.Nintendo.SNES
 				{
 					using (Api.EnterExit())
 					{
-						var a = FakeBusMap((int)addr);
-						if (a.HasValue)
-							blockptr[a.Value] = val;
+						MemoryMap map = FakeBusMap((int)addr);
+						if (map != null)
+						{
+							byte* blockptr = Api.QUERY_get_memory_data(map.Id);
+							blockptr[map.Offset] = val;
+						}
 					}
 				}, wordSize: 2);
 			_memoryDomainList.Add(md);
@@ -221,6 +276,13 @@ namespace BizHawk.Emulation.Cores.Nintendo.SNES
 			}
 
 			return 0;
+		}
+
+		private class MemoryMap
+		{
+			public LibsnesApi.SNES_MEMORY Id { get; set; }
+
+			public int Offset { get; set; } = 0;
 		}
 	}
 }

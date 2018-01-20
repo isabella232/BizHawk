@@ -34,6 +34,9 @@ namespace BizHawk.Emulation.Cores.Nintendo.SNES
 					cdl["SGB_CARTRAM"] = new byte[_memoryDomains["SGB CARTRAM"].Size];
 			}
 
+			if (_memoryDomains.Has("SA1_IRAM"))
+				cdl["SA1_IRAM"] = new byte[_memoryDomains["SA1_IRAM"].Size];
+
 			cdl.SubType = "SNES";
 			cdl.SubVer = 0;
 		}

@@ -525,6 +525,10 @@ uint8_t* snes_get_memory_data(unsigned id) {
     
 		case SNES_MEMORY_CARTRIDGE_ROM:
       return SNES::cartridge.rom.data();
+
+    case SNES_MEMORY_SA1_IRAM:
+      if(!SNES::cartridge.has_sa1()) break;
+      return SNES::sa1.iram.data();
   }
 
   return 0;
@@ -582,6 +586,9 @@ const char* snes_get_memory_id_name(unsigned id) {
 
     case SNES_MEMORY_CARTRIDGE_ROM:
       return "CARTRIDGE_ROM";
+
+    case SNES_MEMORY_SA1_IRAM:
+      return "SA1_IRAM";
   }
 
   return nullptr;
@@ -650,6 +657,10 @@ unsigned snes_get_memory_size(unsigned id) {
 
     case SNES_MEMORY_CARTRIDGE_ROM:
       size =  SNES::cartridge.rom.size();
+      break;
+
+    case SNES_MEMORY_SA1_IRAM:
+      size = SNES::sa1.iram.size();
       break;
   }
 

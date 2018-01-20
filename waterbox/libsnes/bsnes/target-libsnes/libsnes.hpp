@@ -83,6 +83,8 @@ extern "C" {
 #define SNES_MEMORY_SYSBUS 200
 #define SNES_MEMORY_LOGICAL_REGS 201
 
+#define SNES_MEMORY_SA1_IRAM 300
+
 typedef void (*snes_video_refresh_t)(const uint32_t *data, unsigned width, unsigned height);
 typedef void (*snes_audio_sample_t)(uint16_t left, uint16_t right);
 typedef void (*snes_input_poll_t)(void);
